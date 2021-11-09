@@ -136,14 +136,14 @@ class Mower:
         self.__position = Position(int(x), int(y), Heading.create(heading))
 
     def execute(self, commands: str):
+        command_handlers = {
+            "R": self.__position.spin_right,
+            "L": self.__position.spin_left,
+            "M": self.__position.move_forward,
+        }
 
         for command in commands:
-            if command == "R":
-                self.__position.spin_right()
-            elif command == "L":
-                self.__position.spin_left()
-            elif command == "M":
-                self.__position.move_forward()
+            command_handlers[command]()
 
         return f"{self.__position}"
 
