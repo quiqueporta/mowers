@@ -1,3 +1,6 @@
+from typing import List
+
+
 class North:
 
     def spin_right(self):
@@ -110,3 +113,32 @@ class Mower:
                 self.__position.move_forward()
 
         return f"{self.__position}"
+
+    @classmethod
+    def deploy_at(cls, position):
+        return Mower(position)
+
+
+class MowersController:
+
+    def execute(self, commands: str) -> str:
+        result = ""
+
+        for command in self.__extract_commands(commands):
+
+            if self.__is_mower_initial_position(command):
+                mower = Mower.deploy_at(command)
+            elif self.__is_mower_movement_command(command):
+                mower_result = mower.execute(command)
+                result += f"{mower_result}\n"
+
+        return result
+
+    def __extract_commands(self, commands: str) -> List[str]:
+        return commands.split("\n")[:-1]
+
+    def __is_mower_initial_position(self, command) -> bool:
+        return len(command) == 5
+
+    def __is_mower_movement_command(self, command) -> bool:
+        return len(command) > 5
