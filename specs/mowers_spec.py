@@ -50,3 +50,33 @@ with description("Mower") as self:
             result = self.mower.execute("RRRR")
 
             expect(result).to(equal("0 0 N"))
+
+    with context("movement"):
+
+        with it("can move North forward"):
+            mower = Mower("0 0 N")
+
+            result = mower.execute("M")
+
+            expect(result).to(equal("0 1 N"))
+
+        with it("can move East forward"):
+            mower = Mower("0 0 E")
+
+            result = mower.execute("M")
+
+            expect(result).to(equal("1 0 E"))
+
+        with it("can move South forward"):
+            mower = Mower("0 1 S")
+
+            result = mower.execute("M")
+
+            expect(result).to(equal("0 0 S"))
+
+        with it("can move West forward"):
+            mower = Mower("1 0 W")
+
+            result = mower.execute("M")
+
+            expect(result).to(equal("0 0 W"))
