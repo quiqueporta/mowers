@@ -171,7 +171,10 @@ class MowersController:
         return commands.split("\n")[:-1]
 
     def __is_mower_initial_position(self, command) -> bool:
-        return len(command) == 5
+        return len(command) == 5 and self.__has_numbers(command)
 
     def __is_mower_movement_command(self, command) -> bool:
-        return len(command) > 5
+        return not self.__has_numbers(command)
+
+    def __has_numbers(self, command: str) -> bool:
+        return any(char.isdigit() for char in command)
