@@ -1,27 +1,27 @@
-from typing import List
+from typing import List, Tuple
 from abc import ABC, abstractmethod
 
 
 class Heading(ABC):
 
     @abstractmethod
-    def spin_right(self):
+    def spin_right(self) -> 'Heading':
         pass
 
     @abstractmethod
-    def spin_left(self):
+    def spin_left(self) -> 'Heading':
         pass
 
     @abstractmethod
-    def forward_offset(self):
+    def forward_offset(self) -> Tuple[int, int]:
         pass
 
     @abstractmethod
-    def __str__(self):
+    def __str__(self) -> str:
         pass
 
     @staticmethod
-    def create(string: str):
+    def create(string: str) -> 'Heading':
         HEADINGS = {
             "N": North,
             "S": South,
@@ -34,28 +34,28 @@ class Heading(ABC):
 
 class North(Heading):
 
-    def spin_right(self):
+    def spin_right(self) -> Heading:
         return East()
 
-    def spin_left(self):
+    def spin_left(self) -> Heading:
         return West()
 
-    def forward_offset(self):
+    def forward_offset(self) -> Tuple[int, int]:
         return (0, 1)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "N"
 
 
 class East(Heading):
 
-    def spin_right(self):
+    def spin_right(self) -> Heading:
         return South()
 
-    def spin_left(self):
+    def spin_left(self) -> Heading:
         return North()
 
-    def forward_offset(self):
+    def forward_offset(self) -> Tuple[int, int]:
         return (1, 0)
 
     def __str__(self):
@@ -64,13 +64,13 @@ class East(Heading):
 
 class South(Heading):
 
-    def spin_right(self):
+    def spin_right(self) -> Heading:
         return West()
 
-    def spin_left(self):
+    def spin_left(self) -> Heading:
         return East()
 
-    def forward_offset(self):
+    def forward_offset(self) -> Tuple[int, int]:
         return (0, -1)
 
     def __str__(self):
@@ -79,13 +79,13 @@ class South(Heading):
 
 class West(Heading):
 
-    def spin_right(self):
+    def spin_right(self) -> Heading:
         return North()
 
-    def spin_left(self):
+    def spin_left(self) -> Heading:
         return South()
 
-    def forward_offset(self):
+    def forward_offset(self) -> Tuple[int, int]:
         return (-1, 0)
 
     def __str__(self):
@@ -99,30 +99,30 @@ class Position:
         self.__y = y
         self.__heading = heading
 
-    def move_forward(self):
+    def move_forward(self) -> None:
         offset_x, offset_y = self.__heading.forward_offset()
         self.__x += offset_x
         self.__y += offset_y
 
-    def spin_right(self):
+    def spin_right(self) -> None:
         self.__heading = self.__heading.spin_right()
 
-    def spin_left(self):
+    def spin_left(self) -> None:
         self.__heading = self.__heading.spin_left()
 
-    def __move_up(self):
+    def __move_up(self) -> None:
         self.__y += 1
 
-    def __move_down(self):
+    def __move_down(self) -> None:
         self.__y -= 1
 
-    def __move_left(self):
+    def __move_left(self) -> None:
         self.__x -= 1
 
-    def __move_right(self):
+    def __move_right(self) -> None:
         self.__x += 1
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.__x} {self.__y} {self.__heading}"
 
 
@@ -135,7 +135,7 @@ class Mower:
 
         self.__position = Position(int(x), int(y), Heading.create(heading))
 
-    def execute(self, commands: str):
+    def execute(self, commands: str) -> str:
         command_handlers = {
             "R": self.__position.spin_right,
             "L": self.__position.spin_left,
@@ -148,7 +148,7 @@ class Mower:
         return f"{self.__position}"
 
     @classmethod
-    def deploy_at(cls, position):
+    def deploy_at(cls, position: str) -> 'Mower':
         return Mower(position)
 
 
