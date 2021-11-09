@@ -110,18 +110,6 @@ class Position:
     def spin_left(self) -> None:
         self.__heading = self.__heading.spin_left()
 
-    def __move_up(self) -> None:
-        self.__y += 1
-
-    def __move_down(self) -> None:
-        self.__y -= 1
-
-    def __move_left(self) -> None:
-        self.__x -= 1
-
-    def __move_right(self) -> None:
-        self.__x += 1
-
     def __str__(self) -> str:
         return f"{self.__x} {self.__y} {self.__heading}"
 
