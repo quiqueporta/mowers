@@ -1,0 +1,6 @@
+#!/bin/sh
+
+docker build -t mowers:latest .
+clear
+docker run --rm -it mowers:latest mamba --f documentation
+
