@@ -1,19 +1,53 @@
 from typing import List
+from abc import ABC, abstractmethod
 
 
-class North:
+class Heading(ABC):
+
+    @abstractmethod
+    def spin_right(self):
+        pass
+
+    @abstractmethod
+    def spin_left(self):
+        pass
+
+    @abstractmethod
+    def forward_offset(self):
+        pass
+
+    @abstractmethod
+    def __str__(self):
+        pass
+
+    @staticmethod
+    def create(string: str):
+        HEADINGS = {
+            "N": North,
+            "S": South,
+            "E": East,
+            "W": West
+        }
+
+        return HEADINGS[string]()
+
+
+class North(Heading):
 
     def spin_right(self):
         return East()
 
     def spin_left(self):
         return West()
+
+    def forward_offset(self):
+        return (0, 1)
 
     def __str__(self):
         return "N"
 
 
-class East:
+class East(Heading):
 
     def spin_right(self):
         return South()
@@ -21,11 +55,14 @@ class East:
     def spin_left(self):
         return North()
 
+    def forward_offset(self):
+        return (1, 0)
+
     def __str__(self):
         return "E"
 
 
-class South:
+class South(Heading):
 
     def spin_right(self):
         return West()
@@ -33,17 +70,23 @@ class South:
     def spin_left(self):
         return East()
 
+    def forward_offset(self):
+        return (0, -1)
+
     def __str__(self):
         return "S"
 
 
-class West:
+class West(Heading):
 
     def spin_right(self):
         return North()
 
     def spin_left(self):
         return South()
+
+    def forward_offset(self):
+        return (-1, 0)
 
     def __str__(self):
         return "W"
@@ -51,20 +94,15 @@ class West:
 
 class Position:
 
-    def __init__(self, x: int, y: int, heading):
+    def __init__(self, x: int, y: int, heading: Heading):
         self.__x = x
         self.__y = y
         self.__heading = heading
 
     def move_forward(self):
-        movements = {
-            'N': self.__move_up,
-            'S': self.__move_down,
-            'W': self.__move_left,
-            'E': self.__move_right,
-        }
-
-        movements[str(self.__heading)]()
+        offset_x, offset_y = self.__heading.forward_offset()
+        self.__x += offset_x
+        self.__y += offset_y
 
     def spin_right(self):
         self.__heading = self.__heading.spin_right()
@@ -90,17 +128,12 @@ class Position:
 
 class Mower:
 
-    ORIENTATIONS = {
-        "N": North,
-        "S": South,
-        "E": East,
-        "W": West
-    }
+    DEFAULT_POSITION = "0 0 N"
 
-    def __init__(self, initial_position: str = "0 0 N"):
-        x, y, orientation = initial_position.split(" ")
+    def __init__(self, initial_position: str = DEFAULT_POSITION):
+        x, y, heading = initial_position.split(" ")
 
-        self.__position = Position(int(x), int(y), self.ORIENTATIONS[orientation]())
+        self.__position = Position(int(x), int(y), Heading.create(heading))
 
     def execute(self, commands: str):
 
