@@ -1,9 +1,9 @@
 class North:
 
-    def rotate_right(self):
+    def spin_right(self):
         return East()
 
-    def rotate_left(self):
+    def spin_left(self):
         return West()
 
     def __str__(self):
@@ -12,10 +12,10 @@ class North:
 
 class East:
 
-    def rotate_right(self):
+    def spin_right(self):
         return South()
 
-    def rotate_left(self):
+    def spin_left(self):
         return North()
 
     def __str__(self):
@@ -24,10 +24,10 @@ class East:
 
 class South:
 
-    def rotate_right(self):
+    def spin_right(self):
         return West()
 
-    def rotate_left(self):
+    def spin_left(self):
         return East()
 
     def __str__(self):
@@ -36,10 +36,10 @@ class South:
 
 class West:
 
-    def rotate_right(self):
+    def spin_right(self):
         return North()
 
-    def rotate_left(self):
+    def spin_left(self):
         return South()
 
     def __str__(self):
@@ -55,8 +55,8 @@ class Mower:
 
         for command in commands:
             if command == "R":
-                self.__current_orientation = self.__current_orientation.rotate_right()
+                self.__current_orientation = self.__current_orientation.spin_right()
             elif command == "L":
-                self.__current_orientation = self.__current_orientation.rotate_left()
+                self.__current_orientation = self.__current_orientation.spin_left()
 
         return f"0 0 {self.__current_orientation}"

@@ -1,63 +1,52 @@
-from mamba import description, context, it
-from expects import expect, be_true, be_false, equal
+from mamba import before, description, context, it
+from expects import expect, equal
 
 from mowers import Mower
 
 
-with description("Mower"):
+with description("Mower") as self:
 
-    with it("can rorate left once"):
-        mower = Mower()
+    with context("rotation"):
 
-        result = mower.execute("L")
+        with before.each:
+            self.mower = Mower()
 
-        expect(result).to(equal("0 0 W"))
+        with it("can spin left once"):
+            result = self.mower.execute("L")
 
-    with it("can rorate left twice"):
-        mower = Mower()
+            expect(result).to(equal("0 0 W"))
 
-        result = mower.execute("LL")
+        with it("can spin left twice"):
+            result = self.mower.execute("LL")
 
-        expect(result).to(equal("0 0 S"))
+            expect(result).to(equal("0 0 S"))
 
-    with it("can rorate left three times"):
-        mower = Mower()
+        with it("can spin left three times"):
+            result = self.mower.execute("LLL")
 
-        result = mower.execute("LLL")
+            expect(result).to(equal("0 0 E"))
 
-        expect(result).to(equal("0 0 E"))
+        with it("can spin left four times"):
+            result = self.mower.execute("LLLL")
 
-    with it("can rorate left four times"):
-        mower = Mower()
+            expect(result).to(equal("0 0 N"))
 
-        result = mower.execute("LLLL")
+        with it("can spin right once"):
+            result = self.mower.execute("R")
 
-        expect(result).to(equal("0 0 N"))
+            expect(result).to(equal("0 0 E"))
 
-    with it("can rotate right once"):
-        mower = Mower()
+        with it("can spin right twice"):
+            result = self.mower.execute("RR")
 
-        result = mower.execute("R")
+            expect(result).to(equal("0 0 S"))
 
-        expect(result).to(equal("0 0 E"))
+        with it("can spin right three times"):
+            result = self.mower.execute("RRR")
 
-    with it("can rotate right twice"):
-        mower = Mower()
+            expect(result).to(equal("0 0 W"))
 
-        result = mower.execute("RR")
+        with it("can spin right four times"):
+            result = self.mower.execute("RRRR")
 
-        expect(result).to(equal("0 0 S"))
-
-    with it("can rotate right three times"):
-        mower = Mower()
-
-        result = mower.execute("RRR")
-
-        expect(result).to(equal("0 0 W"))
-
-    with it("can rotate right four times"):
-        mower = Mower()
-
-        result = mower.execute("RRRR")
-
-        expect(result).to(equal("0 0 N"))
+            expect(result).to(equal("0 0 N"))
