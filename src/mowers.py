@@ -102,6 +102,14 @@ class Position:
         self.__y = y
         self.__heading = heading
 
+    @property
+    def x(self):
+        return self.__x
+
+    @property
+    def y(self):
+        return self.__y
+
     def move_forward(self) -> None:
         offset_x, offset_y = self.__heading.forward_offset()
         self.__x += offset_x
@@ -113,20 +121,40 @@ class Position:
     def spin_left(self) -> None:
         self.__heading = self.__heading.spin_left()
 
+    def forward_position(self) -> Tuple[int, int]:
+        offset_x, offset_y = self.__heading.forward_offset()
+        return (self.__x + offset_x, self.__y + offset_y)
+
     def __str__(self) -> str:
         return f"{self.__x} {self.__y} {self.__heading}"
 
 
+class Plateau:
+
+    def __init__(self, max_x: int, max_y: int):
+        self.__max_x = max_x
+        self.__max_y = max_y
+
+    def can_mower_move_to(self, position: Tuple[int, int]):
+        return (
+            position[0] <= self.__max_x and
+            position[1] <= self.__max_y and
+            position[0] >= 0 and
+            position[1] >= 0
+        )
+
+
 class Mower:
 
-    def __init__(self, initial_position: Position):
+    def __init__(self, plateau: Plateau, initial_position: Position):
+        self.__plateau = plateau
         self.__position = initial_position
 
     def execute(self, movements: str) -> str:
         movements_handlers = {
             "R": self.__position.spin_right,
             "L": self.__position.spin_left,
-            "M": self.__position.move_forward,
+            "M": self.__move_forward,
         }
 
         for movement in movements:
@@ -134,19 +162,26 @@ class Mower:
 
         return f"{self.__position}"
 
+    def __move_forward(self):
+        if not self.__plateau.can_mower_move_to(self.__position.forward_position()):
+            return
+
+        self.__position.move_forward()
+
     @classmethod
-    def deploy_at(cls, position: Position) -> 'Mower':
-        return Mower(position)
+    def deploy_at(cls, plateau: Plateau, position: Position) -> 'Mower':
+        return Mower(plateau, position)
 
 
 class MowersController:
 
     def execute(self, commands: List[str]) -> List[str]:
         commands = Commands(commands)
+        plateau = commands.plateau()
         result = []
 
         for mower_command in commands.next_mower_command():
-            mower = Mower.deploy_at(mower_command.initial_position)
+            mower = Mower.deploy_at(plateau, mower_command.initial_position)
             mower_result = mower.execute(mower_command.movement)
             result.append(mower_result)
 
@@ -170,6 +205,9 @@ class Commands:
         for mower_command in zip(self.__mowers_initial_positions(), self.__mowers_movements()):
             yield MowerCommand(initial_position=mower_command[0], movement=mower_command[1])
 
+    def plateau(self):
+        return Plateau(int(self.__plateau_size()[0]), int(self.__plateau_size()[2]))
+
     def __check_commands_format(self):
         plateau_size = self.__plateau_size()
         mowers_initial_positions = self.__mowers_positions()
@@ -184,10 +222,10 @@ class Commands:
         if not all(re.match(r"^[LMR]+$", movement) for movement in mowers_movements):
             raise InvalidMowerMovements()
 
-    def __plateau_size(self):
+    def __plateau_size(self) -> str:
         return self.__commands[0]
 
-    def __mowers_commands(self):
+    def __mowers_commands(self) -> List[str]:
         return self.__commands[1:]
 
     def __mowers_positions(self):

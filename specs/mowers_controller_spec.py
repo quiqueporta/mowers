@@ -100,6 +100,58 @@ with description("Mowers Controller") as self:
 
                 expect(result).to(equal(["0 0 W"]))
 
+    with context("when a mowers tries to move outside the plateau from north"):
+
+        with it("does not execute the move"):
+
+            mowers_controller = MowersController()
+
+            commands = ["1 1", "0 0 N", "MM"]
+
+            result = mowers_controller.execute(commands)
+
+            expected_result = ["0 1 N"]
+            expect(result).to(equal(expected_result))
+
+    with context("when a mowers tries to move outside the plateau from east"):
+
+        with it("does not execute the move"):
+
+            mowers_controller = MowersController()
+
+            commands = ["1 1", "0 0 E", "MM"]
+
+            result = mowers_controller.execute(commands)
+
+            expected_result = ["1 0 E"]
+            expect(result).to(equal(expected_result))
+
+    with context("when a mowers tries to move outside the plateau from west"):
+
+        with it("does not execute the move"):
+
+            mowers_controller = MowersController()
+
+            commands = ["1 1", "1 0 W", "MM"]
+
+            result = mowers_controller.execute(commands)
+
+            expected_result = ["0 0 W"]
+            expect(result).to(equal(expected_result))
+
+    with context("when a mowers tries to move outside the plateau from south"):
+
+        with it("does not execute the move"):
+
+            mowers_controller = MowersController()
+
+            commands = ["1 1", "0 1 S", "MM"]
+
+            result = mowers_controller.execute(commands)
+
+            expected_result = ["0 0 S"]
+            expect(result).to(equal(expected_result))
+
     with it("controls more than one mower"):
 
         mowers_controller = MowersController()
