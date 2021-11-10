@@ -1,131 +1,13 @@
 import re
-from dataclasses import dataclass
-from typing import List, Tuple, Iterable
-from abc import ABC, abstractmethod
+from typing import List, Iterable
 
-from exceptions import InvalidPlateauSize, InvalidMowerInitialLocation, InvalidMowerMovements
-
-
-class Heading(ABC):
-
-    @abstractmethod
-    def spin_right(self) -> 'Heading':
-        pass
-
-    @abstractmethod
-    def spin_left(self) -> 'Heading':
-        pass
-
-    @abstractmethod
-    def forward_offset(self) -> Tuple[int, int]:
-        pass
-
-    @abstractmethod
-    def __str__(self) -> str:
-        pass
-
-    @staticmethod
-    def create(string: str) -> 'Heading':
-        HEADINGS = {
-            "N": North,
-            "S": South,
-            "E": East,
-            "W": West
-        }
-
-        return HEADINGS[string]()
-
-
-class North(Heading):
-
-    def spin_right(self) -> Heading:
-        return East()
-
-    def spin_left(self) -> Heading:
-        return West()
-
-    def forward_offset(self) -> Tuple[int, int]:
-        return (0, 1)
-
-    def __str__(self) -> str:
-        return "N"
-
-
-class East(Heading):
-
-    def spin_right(self) -> Heading:
-        return South()
-
-    def spin_left(self) -> Heading:
-        return North()
-
-    def forward_offset(self) -> Tuple[int, int]:
-        return (1, 0)
-
-    def __str__(self):
-        return "E"
-
-
-class South(Heading):
-
-    def spin_right(self) -> Heading:
-        return West()
-
-    def spin_left(self) -> Heading:
-        return East()
-
-    def forward_offset(self) -> Tuple[int, int]:
-        return (0, -1)
-
-    def __str__(self):
-        return "S"
-
-
-class West(Heading):
-
-    def spin_right(self) -> Heading:
-        return North()
-
-    def spin_left(self) -> Heading:
-        return South()
-
-    def forward_offset(self) -> Tuple[int, int]:
-        return (-1, 0)
-
-    def __str__(self):
-        return "W"
-
-
-@dataclass(frozen=True)
-class Coordinate:
-    x: int
-    y: int
-
-    def __str__(self):
-        return f"{self.x} {self.y}"
-
-
-class Location:
-
-    def __init__(self, coordinate: Coordinate, heading: Heading):
-        self.__coordinate = coordinate
-        self.__heading = heading
-
-    def move_forward(self) -> None:
-        self.__coordinate = self.forward_coordinate()
-
-    def forward_coordinate(self) -> Coordinate:
-        offset_x, offset_y = self.__heading.forward_offset()
-        return Coordinate(self.__coordinate.x + offset_x, self.__coordinate.y + offset_y)
-
-    def spin_right(self) -> None:
-        self.__heading = self.__heading.spin_right()
-
-    def spin_left(self) -> None:
-        self.__heading = self.__heading.spin_left()
-
-    def __str__(self) -> str:
-        return f"{self.__coordinate} {self.__heading}"
+from exceptions import (
+    InvalidPlateauSize,
+    InvalidMowerInitialLocation,
+    InvalidMowerMovements
+)
+from heading import Heading
+from location import Coordinate, Location
 
 
 class Plateau:
