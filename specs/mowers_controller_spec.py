@@ -1,7 +1,7 @@
 from expects import expect, equal, raise_error
 from mamba import before, description, context, it
 
-from exceptions import InvalidPlateauSize, InvalidMowerInitialPosition, InvalidMowerMovements
+from exceptions import InvalidPlateauSize, InvalidMowerInitialLocation, InvalidMowerMovements
 from mowers import MowersController
 
 with description("Mowers Controller") as self:
@@ -171,13 +171,13 @@ with description("Mowers Controller") as self:
 
         expect(lambda: mowers_controller.execute(commands)).to(raise_error(InvalidPlateauSize))
 
-    with it("fails when the initial position for a mower has no correct format"):
+    with it("fails when the initial location for a mower has no correct format"):
 
         mowers_controller = MowersController()
 
         commands = ["5 5", "12N", "LMLMLMLMM"]
 
-        expect(lambda: mowers_controller.execute(commands)).to(raise_error(InvalidMowerInitialPosition))
+        expect(lambda: mowers_controller.execute(commands)).to(raise_error(InvalidMowerInitialLocation))
 
     with it("fails when the movements for a mower has no correct format"):
 

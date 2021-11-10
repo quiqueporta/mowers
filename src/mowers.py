@@ -1,8 +1,9 @@
 import re
+from dataclasses import dataclass
 from typing import List, Tuple, Iterable
 from abc import ABC, abstractmethod
 
-from exceptions import InvalidPlateauSize, InvalidMowerInitialPosition, InvalidMowerMovements
+from exceptions import InvalidPlateauSize, InvalidMowerInitialLocation, InvalidMowerMovements
 
 
 class Heading(ABC):
@@ -95,25 +96,27 @@ class West(Heading):
         return "W"
 
 
+@dataclass(frozen=True)
 class Position:
+    x: int
+    y: int
 
-    def __init__(self, x: int, y: int, heading: Heading):
-        self.__x = x
-        self.__y = y
+    def __str__(self):
+        return f"{self.x} {self.y}"
+
+
+class Location:
+
+    def __init__(self, position: Position, heading: Heading):
+        self.__position = position
         self.__heading = heading
 
-    @property
-    def x(self):
-        return self.__x
-
-    @property
-    def y(self):
-        return self.__y
-
     def move_forward(self) -> None:
+        self.__position = self.forward_position()
+
+    def forward_position(self) -> Position:
         offset_x, offset_y = self.__heading.forward_offset()
-        self.__x += offset_x
-        self.__y += offset_y
+        return Position(self.__position.x + offset_x, self.__position.y + offset_y)
 
     def spin_right(self) -> None:
         self.__heading = self.__heading.spin_right()
@@ -121,55 +124,53 @@ class Position:
     def spin_left(self) -> None:
         self.__heading = self.__heading.spin_left()
 
-    def forward_position(self) -> Tuple[int, int]:
-        offset_x, offset_y = self.__heading.forward_offset()
-        return (self.__x + offset_x, self.__y + offset_y)
-
     def __str__(self) -> str:
-        return f"{self.__x} {self.__y} {self.__heading}"
+        return f"{self.__position} {self.__heading}"
 
 
 class Plateau:
 
-    def __init__(self, max_x: int, max_y: int):
-        self.__max_x = max_x
-        self.__max_y = max_y
+    def __init__(self, top_right_position: Position):
+        self.__bottom_left_position = Position(0, 0)
+        self.__top_right_position = top_right_position
 
-    def can_mower_move_to(self, position: Tuple[int, int]):
-        return (
-            position[0] <= self.__max_x and
-            position[1] <= self.__max_y and
-            position[0] >= 0 and
-            position[1] >= 0
+    def can_mower_move_to(self, position: Position):
+        is_inside_plateau = (
+            position.x <= self.__top_right_position.x and
+            position.y <= self.__top_right_position.y and
+            position.x >= self.__bottom_left_position.x and
+            position.y >= self.__bottom_left_position.y
         )
+
+        return is_inside_plateau
 
 
 class Mower:
 
-    def __init__(self, plateau: Plateau, initial_position: Position):
+    def __init__(self, plateau: Plateau, initial_location: Location):
         self.__plateau = plateau
-        self.__position = initial_position
+        self.__location = initial_location
 
     def execute(self, movements: str) -> str:
         movements_handlers = {
-            "R": self.__position.spin_right,
-            "L": self.__position.spin_left,
+            "R": self.__location.spin_right,
+            "L": self.__location.spin_left,
             "M": self.__move_forward,
         }
 
         for movement in movements:
             movements_handlers[movement]()
 
-        return f"{self.__position}"
+        return f"{self.__location}"
 
     def __move_forward(self):
-        if not self.__plateau.can_mower_move_to(self.__position.forward_position()):
+        if not self.__plateau.can_mower_move_to(self.__location.forward_position()):
             return
 
-        self.__position.move_forward()
+        self.__location.move_forward()
 
     @classmethod
-    def deploy_at(cls, plateau: Plateau, position: Position) -> 'Mower':
+    def deploy_at(cls, plateau: Plateau, position: Location) -> 'Mower':
         return Mower(plateau, position)
 
 
@@ -177,11 +178,11 @@ class MowersController:
 
     def execute(self, commands: List[str]) -> List[str]:
         commands = Commands(commands)
-        plateau = commands.plateau()
+        plateau = Plateau(commands.plateau_top_right_position)
         result = []
 
         for mower_command in commands.next_mower_command():
-            mower = Mower.deploy_at(plateau, mower_command.initial_position)
+            mower = Mower.deploy_at(plateau, mower_command.initial_location)
             mower_result = mower.execute(mower_command.movement)
             result.append(mower_result)
 
@@ -190,8 +191,8 @@ class MowersController:
 
 class MowerCommand:
 
-    def __init__(self, initial_position: Position, movement: str):
-        self.initial_position = initial_position
+    def __init__(self, initial_location: Location, movement: str):
+        self.initial_location = initial_location
         self.movement = movement
 
 
@@ -202,22 +203,23 @@ class Commands:
         self.__check_commands_format()
 
     def next_mower_command(self) -> Iterable[MowerCommand]:
-        for mower_command in zip(self.__mowers_initial_positions(), self.__mowers_movements()):
-            yield MowerCommand(initial_position=mower_command[0], movement=mower_command[1])
+        for mower_command in zip(self.__mowers_initial_locations(), self.__mowers_movements()):
+            yield MowerCommand(initial_location=mower_command[0], movement=mower_command[1])
 
-    def plateau(self):
-        return Plateau(int(self.__plateau_size()[0]), int(self.__plateau_size()[2]))
+    @property
+    def plateau_top_right_position(self):
+        return Position(int(self.__plateau_size()[0]), int(self.__plateau_size()[2]))
 
     def __check_commands_format(self):
         plateau_size = self.__plateau_size()
-        mowers_initial_positions = self.__mowers_positions()
+        mowers_initial_locations = self.__mowers_locations()
         mowers_movements = self.__mowers_movements()
 
         if not re.match(r"^\d \d$", plateau_size):
             raise InvalidPlateauSize()
 
-        if not all(re.match(r"^\d \d [NSEW]+$", position) for position in mowers_initial_positions):
-            raise InvalidMowerInitialPosition()
+        if not all(re.match(r"^\d \d [NSEW]+$", location) for location in mowers_initial_locations):
+            raise InvalidMowerInitialLocation()
 
         if not all(re.match(r"^[LMR]+$", movement) for movement in mowers_movements):
             raise InvalidMowerMovements()
@@ -228,18 +230,19 @@ class Commands:
     def __mowers_commands(self) -> List[str]:
         return self.__commands[1:]
 
-    def __mowers_positions(self):
+    def __mowers_locations(self):
         return self.__mowers_commands()[::2]
 
     def __mowers_movements(self):
         return self.__mowers_commands()[1::2]
 
-    def __mowers_initial_positions(self):
+    def __mowers_initial_locations(self):
         return [
-            self.__create_position_from_string(position)
-            for position in self.__mowers_positions()
+            self.__create_location_from_string(location)
+            for location in self.__mowers_locations()
         ]
 
-    def __create_position_from_string(self, position: str):
-        x, y, heading = position.split(" ")
-        return Position(int(x), int(y), Heading.create(heading))
+    def __create_location_from_string(self, location: str):
+        x, y, heading = location.split(" ")
+
+        return Location(Position(int(x), int(y)), Heading.create(heading))

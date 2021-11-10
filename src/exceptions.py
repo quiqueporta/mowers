@@ -2,7 +2,7 @@ class InvalidPlateauSize(Exception):
     pass
 
 
-class InvalidMowerInitialPosition(Exception):
+class InvalidMowerInitialLocation(Exception):
     pass
 
 
