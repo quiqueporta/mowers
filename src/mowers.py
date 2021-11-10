@@ -1,5 +1,8 @@
+import re
 from typing import List, Tuple, Iterable
 from abc import ABC, abstractmethod
+
+from exceptions import InvalidPlateauSize, InvalidMowerInitialPosition, InvalidMowerMovements
 
 
 class Heading(ABC):
@@ -160,23 +163,45 @@ class MowerCommand:
 class Commands:
 
     def __init__(self, commands: List[str]):
-        self.__plateau_size = commands[0]
-        self.__mowers_commands = commands[1:]
+        self.__commands = commands
+        self.__check_commands_format()
 
     def next_mower_command(self) -> Iterable[MowerCommand]:
         for mower_command in zip(self.__mowers_initial_positions(), self.__mowers_movements()):
-            initial_position = mower_command[0]
-            movement = mower_command[1]
-            yield MowerCommand(initial_position, movement)
+            yield MowerCommand(initial_position=mower_command[0], movement=mower_command[1])
+
+    def __check_commands_format(self):
+        plateau_size = self.__plateau_size()
+        mowers_initial_positions = self.__mowers_positions()
+        mowers_movements = self.__mowers_movements()
+
+        if not re.match(r"^\d \d$", plateau_size):
+            raise InvalidPlateauSize()
+
+        if not all(re.match(r"^\d \d [NSEW]+$", position) for position in mowers_initial_positions):
+            raise InvalidMowerInitialPosition()
+
+        if not all(re.match(r"^[LMR]+$", movement) for movement in mowers_movements):
+            raise InvalidMowerMovements()
+
+    def __plateau_size(self):
+        return self.__commands[0]
+
+    def __mowers_commands(self):
+        return self.__commands[1:]
+
+    def __mowers_positions(self):
+        return self.__mowers_commands()[::2]
+
+    def __mowers_movements(self):
+        return self.__mowers_commands()[1::2]
 
     def __mowers_initial_positions(self):
         return [
-           self.__create_position_from_string(position) for position in self.__mowers_commands[::2]
+            self.__create_position_from_string(position)
+            for position in self.__mowers_positions()
         ]
 
     def __create_position_from_string(self, position: str):
         x, y, heading = position.split(" ")
         return Position(int(x), int(y), Heading.create(heading))
-
-    def __mowers_movements(self):
-        return self.__mowers_commands[1::2]

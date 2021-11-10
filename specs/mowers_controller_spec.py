@@ -1,8 +1,8 @@
+from expects import expect, equal, raise_error
 from mamba import before, description, context, it
-from expects import expect, equal
 
+from exceptions import InvalidPlateauSize, InvalidMowerInitialPosition, InvalidMowerMovements
 from mowers import MowersController
-
 
 with description("Mowers Controller") as self:
 
@@ -15,88 +15,88 @@ with description("Mowers Controller") as self:
 
             with it("can spin left once"):
 
-                instructions = ["5 5", "0 0 N", "L"]
+                commands = ["5 5", "0 0 N", "L"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 W"]))
 
             with it("can spin left twice"):
-                instructions = ["5 5", "0 0 N", "LL"]
+                commands = ["5 5", "0 0 N", "LL"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 S"]))
 
             with it("can spin left three times"):
-                instructions = ["5 5", "0 0 N", "LLL"]
+                commands = ["5 5", "0 0 N", "LLL"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 E"]))
 
             with it("can spin left four times"):
-                instructions = ["5 5", "0 0 N", "LLLL"]
+                commands = ["5 5", "0 0 N", "LLLL"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 N"]))
 
             with it("can spin right once"):
-                instructions = ["5 5", "0 0 N", "R"]
+                commands = ["5 5", "0 0 N", "R"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 E"]))
 
             with it("can spin right twice"):
-                instructions = ["5 5", "0 0 N", "RR"]
+                commands = ["5 5", "0 0 N", "RR"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 S"]))
 
             with it("can spin right three times"):
-                instructions = ["5 5", "0 0 N", "RRR"]
+                commands = ["5 5", "0 0 N", "RRR"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 W"]))
 
             with it("can spin right four times"):
-                instructions = ["5 5", "0 0 N", "RRRR"]
+                commands = ["5 5", "0 0 N", "RRRR"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 N"]))
 
         with context("movement"):
 
             with it("can move North forward"):
-                instructions = ["5 5", "0 0 N", "M"]
+                commands = ["5 5", "0 0 N", "M"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 1 N"]))
 
             with it("can move East forward"):
-                instructions = ["5 5", "0 0 E", "M"]
+                commands = ["5 5", "0 0 E", "M"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["1 0 E"]))
 
             with it("can move South forward"):
-                instructions = ["5 5", "0 1 S", "M"]
+                commands = ["5 5", "0 1 S", "M"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 S"]))
 
             with it("can move West forward"):
-                instructions = ["5 5", "1 0 W", "M"]
+                commands = ["5 5", "1 0 W", "M"]
 
-                result = self.mowers_controller.execute(instructions)
+                result = self.mowers_controller.execute(commands)
 
                 expect(result).to(equal(["0 0 W"]))
 
@@ -104,9 +104,33 @@ with description("Mowers Controller") as self:
 
         mowers_controller = MowersController()
 
-        instructions = ["5 5", "1 2 N", "LMLMLMLMM", "3 3 E", "MMRMMRMRRM"]
+        commands = ["5 5", "1 2 N", "LMLMLMLMM", "3 3 E", "MMRMMRMRRM"]
 
-        result = mowers_controller.execute(instructions)
+        result = mowers_controller.execute(commands)
 
         expected_result = ["1 3 N", "5 1 E"]
         expect(result).to(equal(expected_result))
+
+    with it("fails when the first command has no correct format"):
+
+        mowers_controller = MowersController()
+
+        commands = ["55", "1 2 N", "LMLMLMLMM"]
+
+        expect(lambda: mowers_controller.execute(commands)).to(raise_error(InvalidPlateauSize))
+
+    with it("fails when the initial position for a mower has no correct format"):
+
+        mowers_controller = MowersController()
+
+        commands = ["5 5", "12N", "LMLMLMLMM"]
+
+        expect(lambda: mowers_controller.execute(commands)).to(raise_error(InvalidMowerInitialPosition))
+
+    with it("fails when the movements for a mower has no correct format"):
+
+        mowers_controller = MowersController()
+
+        commands = ["5 5", "1 2 N", "L ML2 HJMLMM"]
+
+        expect(lambda: mowers_controller.execute(commands)).to(raise_error(InvalidMowerMovements))
