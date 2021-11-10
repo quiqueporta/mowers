@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Iterable
 from abc import ABC, abstractmethod
 
 
@@ -116,53 +116,71 @@ class Position:
 
 class Mower:
 
-    DEFAULT_POSITION = "0 0 N"
+    def __init__(self, initial_position: Position):
+        self.__position = initial_position
 
-    def __init__(self, initial_position: str = DEFAULT_POSITION):
-        x, y, heading = initial_position.split(" ")
-
-        self.__position = Position(int(x), int(y), Heading.create(heading))
-
-    def execute(self, commands: str) -> str:
-        command_handlers = {
+    def execute(self, movements: str) -> str:
+        movements_handlers = {
             "R": self.__position.spin_right,
             "L": self.__position.spin_left,
             "M": self.__position.move_forward,
         }
 
-        for command in commands:
-            command_handlers[command]()
+        for movement in movements:
+            movements_handlers[movement]()
 
         return f"{self.__position}"
 
     @classmethod
-    def deploy_at(cls, position: str) -> 'Mower':
+    def deploy_at(cls, position: Position) -> 'Mower':
         return Mower(position)
 
 
 class MowersController:
 
     def execute(self, commands: str) -> str:
+        commands = Commands(commands)
         result = ""
 
-        for command in self.__extract_commands(commands):
-
-            if self.__is_mower_initial_position(command):
-                mower = Mower.deploy_at(command)
-            elif self.__is_mower_movement_command(command):
-                mower_result = mower.execute(command)
-                result += f"{mower_result}\n"
+        for mower_command in commands.next_mower_command():
+            mower = Mower.deploy_at(mower_command.initial_position)
+            mower_result = mower.execute(mower_command.movement)
+            result += f"{mower_result}\n"
 
         return result
 
+
+class MowerCommand:
+
+    def __init__(self, initial_position: Position, movement: str):
+        self.initial_position = initial_position
+        self.movement = movement
+
+
+class Commands:
+
+    def __init__(self, input: str):
+        commands = self.__extract_commands(input)
+        self.__plateau_size = commands[0]
+        self.__mowers_commands = commands[1:]
+
+    def next_mower_command(self) -> Iterable[MowerCommand]:
+        for mower_command in zip(self.__mowers_initial_positions(), self.__mowers_movements()):
+            initial_position = mower_command[0]
+            movement = mower_command[1]
+            yield MowerCommand(initial_position, movement)
+
+    def __mowers_initial_positions(self):
+        return [
+           self.__create_position_from_string(position) for position in self.__mowers_commands[::2]
+        ]
+
+    def __create_position_from_string(self, position: str):
+        x, y, heading = position.split(" ")
+        return Position(int(x), int(y), Heading.create(heading))
+
+    def __mowers_movements(self):
+        return self.__mowers_commands[1::2]
+
     def __extract_commands(self, commands: str) -> List[str]:
         return commands.split("\n")[:-1]
-
-    def __is_mower_initial_position(self, command) -> bool:
-        return len(command) == 5 and self.__has_numbers(command)
-
-    def __is_mower_movement_command(self, command) -> bool:
-        return not self.__has_numbers(command)
-
-    def __has_numbers(self, command: str) -> bool:
-        return any(char.isdigit() for char in command)

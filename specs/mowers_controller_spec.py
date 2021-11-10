@@ -139,14 +139,3 @@ with description("Mowers Controller") as self:
         expected_result = "1 3 N\n" \
                           "5 1 E\n"
         expect(result).to(equal(expected_result))
-
-    with it("knows when a instruction is a initial position or movement when strings have same size"):
-
-        mowers_controller = MowersController()
-        initial_position = "2 2 N"
-        movement = "LMMRM"
-        instructions = f"5 5\n{initial_position}\n{movement}\n"
-
-        result = mowers_controller.execute(instructions)
-
-        expect(result).to(equal("0 3 N\n"))
