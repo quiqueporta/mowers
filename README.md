@@ -6,3 +6,9 @@ Technical Challenge for SEAT:CODE Backend Developer
 ```
 $ ./docker/test
 ```
+
+## How to execute example commands
+
+```
+$ ./docker/main example_commands.txt
+```

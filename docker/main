@@ -1,0 +1,5 @@
+#!/bin/sh
+
+docker build -t mowers:latest .
+clear
+docker run --rm -it mowers:latest python main.py $1
