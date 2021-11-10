@@ -97,7 +97,7 @@ class West(Heading):
 
 
 @dataclass(frozen=True)
-class Position:
+class Coordinate:
     x: int
     y: int
 
@@ -107,16 +107,16 @@ class Position:
 
 class Location:
 
-    def __init__(self, position: Position, heading: Heading):
-        self.__position = position
+    def __init__(self, coordinate: Coordinate, heading: Heading):
+        self.__coordinate = coordinate
         self.__heading = heading
 
     def move_forward(self) -> None:
-        self.__position = self.forward_position()
+        self.__coordinate = self.forward_coordinate()
 
-    def forward_position(self) -> Position:
+    def forward_coordinate(self) -> Coordinate:
         offset_x, offset_y = self.__heading.forward_offset()
-        return Position(self.__position.x + offset_x, self.__position.y + offset_y)
+        return Coordinate(self.__coordinate.x + offset_x, self.__coordinate.y + offset_y)
 
     def spin_right(self) -> None:
         self.__heading = self.__heading.spin_right()
@@ -125,21 +125,21 @@ class Location:
         self.__heading = self.__heading.spin_left()
 
     def __str__(self) -> str:
-        return f"{self.__position} {self.__heading}"
+        return f"{self.__coordinate} {self.__heading}"
 
 
 class Plateau:
 
-    def __init__(self, top_right_position: Position):
-        self.__bottom_left_position = Position(0, 0)
-        self.__top_right_position = top_right_position
+    def __init__(self, top_right_coordinate: Coordinate):
+        self.__bottom_left_coordinate = Coordinate(0, 0)
+        self.__top_right_coordinate = top_right_coordinate
 
-    def can_mower_move_to(self, position: Position):
+    def can_mower_move_to(self, coordinate: Coordinate):
         is_inside_plateau = (
-            position.x <= self.__top_right_position.x and
-            position.y <= self.__top_right_position.y and
-            position.x >= self.__bottom_left_position.x and
-            position.y >= self.__bottom_left_position.y
+            coordinate.x <= self.__top_right_coordinate.x and
+            coordinate.y <= self.__top_right_coordinate.y and
+            coordinate.x >= self.__bottom_left_coordinate.x and
+            coordinate.y >= self.__bottom_left_coordinate.y
         )
 
         return is_inside_plateau
@@ -164,25 +164,25 @@ class Mower:
         return f"{self.__location}"
 
     def __move_forward(self):
-        if not self.__plateau.can_mower_move_to(self.__location.forward_position()):
+        if not self.__plateau.can_mower_move_to(self.__location.forward_coordinate()):
             return
 
         self.__location.move_forward()
 
     @classmethod
-    def deploy_at(cls, plateau: Plateau, position: Location) -> 'Mower':
-        return Mower(plateau, position)
+    def deploy_at(cls, location: Location, plateau: Plateau) -> 'Mower':
+        return Mower(plateau, location)
 
 
 class MowersController:
 
     def execute(self, commands: List[str]) -> List[str]:
         commands = Commands(commands)
-        plateau = Plateau(commands.plateau_top_right_position)
+        plateau = Plateau(commands.plateau_top_right_coordinate)
         result = []
 
         for mower_command in commands.next_mower_command():
-            mower = Mower.deploy_at(plateau, mower_command.initial_location)
+            mower = Mower.deploy_at(mower_command.initial_location, plateau)
             mower_result = mower.execute(mower_command.movement)
             result.append(mower_result)
 
@@ -207,8 +207,8 @@ class Commands:
             yield MowerCommand(initial_location=mower_command[0], movement=mower_command[1])
 
     @property
-    def plateau_top_right_position(self):
-        return Position(int(self.__plateau_size()[0]), int(self.__plateau_size()[2]))
+    def plateau_top_right_coordinate(self):
+        return Coordinate(int(self.__plateau_size()[0]), int(self.__plateau_size()[2]))
 
     def __check_commands_format(self):
         plateau_size = self.__plateau_size()
@@ -245,4 +245,4 @@ class Commands:
     def __create_location_from_string(self, location: str):
         x, y, heading = location.split(" ")
 
-        return Location(Position(int(x), int(y)), Heading.create(heading))
+        return Location(Coordinate(int(x), int(y)), Heading.create(heading))
