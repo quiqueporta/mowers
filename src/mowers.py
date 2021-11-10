@@ -138,14 +138,14 @@ class Mower:
 
 class MowersController:
 
-    def execute(self, commands: str) -> str:
+    def execute(self, commands: List[str]) -> List[str]:
         commands = Commands(commands)
-        result = ""
+        result = []
 
         for mower_command in commands.next_mower_command():
             mower = Mower.deploy_at(mower_command.initial_position)
             mower_result = mower.execute(mower_command.movement)
-            result += f"{mower_result}\n"
+            result.append(mower_result)
 
         return result
 
@@ -159,8 +159,7 @@ class MowerCommand:
 
 class Commands:
 
-    def __init__(self, input: str):
-        commands = self.__extract_commands(input)
+    def __init__(self, commands: List[str]):
         self.__plateau_size = commands[0]
         self.__mowers_commands = commands[1:]
 
@@ -181,6 +180,3 @@ class Commands:
 
     def __mowers_movements(self):
         return self.__mowers_commands[1::2]
-
-    def __extract_commands(self, commands: str) -> List[str]:
-        return commands.split("\n")[:-1]
